@@ -6,11 +6,11 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <link rel="dns-prefetch" href="http://alvey.github.io">
-  <title>Alvey&#39;s Notes</title>
+  <title>Tag: Java | Alvey&#39;s Notes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta property="og:type" content="website">
 <meta property="og:title" content="Alvey&#39;s Notes">
-<meta property="og:url" content="http://alvey.github.io/index.html">
+<meta property="og:url" content="http://alvey.github.io/tags/Java/index.html">
 <meta property="og:site_name" content="Alvey&#39;s Notes">
 <meta property="og:locale" content="default">
 <meta name="twitter:card" content="summary">
@@ -148,171 +148,34 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-zookeeper-paxos" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
+  
     
-      <header class="article-header">
-        
+    
+      
+      
+      <section class="archives-wrap">
+        <div class="archive-year-wrap">
+          <a href="/archives/2019" class="archive-year">2019</a>
+        </div>
+        <div class="archives">
+    
+    <article class="archive-article archive-type-post">
+  <div class="archive-article-inner">
+    <header class="archive-article-header">
+      	<div class="article-meta">
+	      	<a href="/2019/03/27/zookeeper-paxos/" class="archive-article-date">
+  	<time datetime="2019-03-27T11:54:41.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-03-27</time>
+</a>
+        </div>
+    	 
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2019/03/27/zookeeper-paxos/">ZAB协议的&#34;前世今生&#34;</a>
+      <a class="archive-article-title" href="/2019/03/27/zookeeper-paxos/">ZAB协议的&#34;前世今生&#34;</a>
     </h1>
   
 
-        
-        <a href="/2019/03/27/zookeeper-paxos/" class="archive-article-date">
-  	<time datetime="2019-03-27T11:54:41.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-03-27</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h3 id="引述"><a href="#引述" class="headerlink" title="引述"></a>引述</h3><h5 id="分布式系统"><a href="#分布式系统" class="headerlink" title="分布式系统"></a>分布式系统</h5><pre><code>分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调
-</code></pre><p><img src="/assets/blogImg/2019-03-27/d-1.png" alt="分布式系统"></p>
-<ul>
-<li>特点<ul>
-<li>分布式性</li>
-<li>并发性</li>
-<li>对等性</li>
-</ul>
-</li>
-<li>缺陷<ul>
-<li>故障随时发生，网络、节点故障</li>
-<li>缺乏全局时钟</li>
-</ul>
-</li>
-<li>由分布式引发的问题<ul>
-<li>节点故障<ul>
-<li>硬件故障</li>
-<li>网络故障：网络不可用（假死）、资源耗尽（僵死）</li>
-</ul>
-</li>
-<li>通信异常</li>
-<li>网络分区（俗称脑裂）</li>
-</ul>
-</li>
-</ul>
-<blockquote>
-<p>网络三态</p>
-<ul>
-<li>成功（Success）</li>
-<li>失败（Failure）</li>
-<li>超时（Timeout）</li>
-</ul>
-</blockquote>
-<h5 id="CAP理论"><a href="#CAP理论" class="headerlink" title="CAP理论"></a>CAP理论</h5><ul>
-<li>C(consistency)：一致性<br>  数据在分布式环境下的多个副本之间能否保持一致性，这里一致性更多的是指强一致性</li>
-<li>A(availability)：可用性<br>  分布式系统一直处于可用状态对于请求总是能在有限的时间内返回结果</li>
-<li>P(partition tolerance)：分区容错性<br>  排除整个网络故障，分布式系统在任何网络或者单点故障时仍能对外提供满足一致性和可用性服务</li>
-</ul>
-<p><code>一个分布式系统不可能同时满足一致性、可用性和分区容错性这三个基本需求，最多只能同时满足其中的两项。架构师往往会花精力在怎么根据业务场景在A和C之间寻求平衡</code></p>
-<ul>
-<li>几种情况<ul>
-<li>满足CA：将数据和服务都放在一个节点上，避免网络引起的负面影响，充分保证系统的可用性和一致性。但是放弃P意味着放弃了系统的可扩展性<ul>
-<li>常见：RDBMS</li>
-</ul>
-</li>
-<li>满足PC：当节点故障或者网络故障时，受到影响的服务需要等待一定时间，因此在等待时间里，系统无法对外提供正常服务，不可用<ul>
-<li>常见：MongoDB，HBase，Redis</li>
-</ul>
-</li>
-<li>满足AP：系统无法保证数据实时一致性，但是可承诺数据最终会保证一致性。因此存在数据不一致的窗口期，至于窗口期的长短取决于系统设计<ul>
-<li>Cassandra, DynamoDB</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h5 id="BASE理论"><a href="#BASE理论" class="headerlink" title="BASE理论"></a>BASE理论</h5><pre><code>即使无法做到强一致性，但是分布式系统可以根据自己的业务特点，采用适当方式来使系统达到最终的一致性
-</code></pre><ul>
-<li>Basically Available<br>  当分布式系统出现不可预见的故障时，允许损失部分可用性，保证系统的”基本可用”</li>
-<li>Soft state<br>  允许系统中的数据存在中间状态，既系统的不同节点的数据副本之间的数据同步过程存在延时，并认为这种延时不会影响系统可用性</li>
-<li>Eventually consistent<br>  所有数据在经过一段时间的数据同步后，最终能够达到一致的状态</li>
-</ul>
-<p><strong>一致性协议及其重要性</strong></p>
-<p>  为保证分布式系统的的高可靠性和高可用性，数据在系统中一般存储在多个副本中。当某个副本所在的节点出现故障时，分布式系统能够自动将服务切换到其他到副本，从而实现自动容错。<br>  同一份数据的多个副本往往有一个为主的副本，其他为备选副本。从一个份数据的角度讲，主副本所在的节点为主节点，备副本所在的节点为备节点，但在整个系统范围上看，每个节点都是主节点，也是备节点。因此主从节点数据一致性就成了必须要面对的问题。</p>
-<blockquote>
-<p>  当前一致性解决方案有：</p>
-<ul>
-<li>[2PC/3PC] </li>
-<li><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/PaxosRun" target="_blank" rel="noopener">Paxos 协议</a></li>
-<li><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/Zab" target="_blank" rel="noopener">ZAB协议</a></li>
-<li><a href="http://raft.taillog.cn/" target="_blank" rel="noopener">Raft 协议</a></li>
-</ul>
-</blockquote>
-<h3 id="拜占庭将军问题"><a href="#拜占庭将军问题" class="headerlink" title="拜占庭将军问题"></a>拜占庭将军问题</h3><pre><code>Lesile Lamport 教授在三十多年前发表论文《拜占庭将军问题》
-</code></pre><p><img src="/assets/blogImg/2019-03-27/d-2.jpg" alt="分布式系统"></p>
-<blockquote>
-<p> 拜占庭帝国是5~15世纪的东罗马帝国，拜占庭即是现在的土耳其的伊斯坦布尔。拜占庭帝国想要进攻一个强大的敌人，为此派出了一支联合军队去包围这个敌人。这个敌人虽不比拜占庭帝国，但也足以抵御联军半数常规部队的同时袭击。基于一些原因，这支联军不能集合在一起单点突破，必须在分开的包围状态下同时攻击。他们任一支军队单独进攻都毫无胜算，除非有超过半数常规军队同时袭击才能攻下敌国。他们分散在敌国的四周，依靠通信兵相互通信来协商进攻意向及进攻时间。困扰这些将军的问题是，他们不确定他们中是否有叛徒，叛徒可能擅自变更进攻意向或者进攻时间。在这种状态下，拜占庭将军们能否找到一种分布式的协议来让他们能够远程协商，从而赢取战斗？<br>    这就是著名的拜占庭将军问题</p>
-</blockquote>
-<pre><code>拜占庭假设是对现实世界的模型化，由于硬件错误、网络阻塞或者断开以及遭受到恶意攻击，计算机和网络可能出现不可预料的行为。
-</code></pre><p>我们可以想象，拜占庭军队有许多分支，驻扎在敌人城外，每一支由各自的将军指挥，将军们只能通过通讯员进行通讯。在观察敌人以后，将军们必须制定一个统一的行动计划——进攻或者撤退。然而，这些将军中有叛徒，他们不希望忠诚的将军们达到一致，因此影响了统一行动计划的制定与传播。但问题是，将军们必须有一个协议，使所有的将军们能够达到一致，而且少数几个叛徒不能使将军们作出不一致的计划——使有些将军进攻而另外一些将军撤退。<br>于是可以假设有11位将军，其中有2个叛徒，9个忠诚将军。如果9个忠诚的将军中有6个以上判断要进攻，而剩下的将军包括2名叛徒判断要撤退，但由于超过半数的人判断要进攻，结论是进攻，结果和预想一致，最终进攻并取胜；另外一种情况是9个忠诚的将军有不超过5个人判断要进攻，由于叛徒始终主张撤退，以至于超过半数的人判断要撤退，所以结论是撤退。但是这种情况完全是允许的，因为这11位将军依然保持着状态的一致性，进而可以无恙的进入下一轮的判断！</p>
-<p>于是乎，Lamport在此条件的基础上，提出了一种解决分布式一致性问题的解法，<strong>Paxos协议</strong>！</p>
-<blockquote>
-<p>和拜占庭将军问题类似还有个 <strong>“两军问题”</strong>，它们俩实质是不一样的，有兴趣可以深入研究下</p>
-</blockquote>
-<h3 id="Paxos-协议"><a href="#Paxos-协议" class="headerlink" title="Paxos 协议"></a>Paxos 协议</h3><pre><code>Google Chubby的作者Mike Burrows说过世界上只有一种一致性算法，那就是Paxos，其他的算法都是残次品。
-</code></pre><h5 id="Zookeeper"><a href="#Zookeeper" class="headerlink" title="Zookeeper"></a><a href="http://zookeeper.apache.org/" target="_blank" rel="noopener">Zookeeper</a></h5><pre><code>Zookeeper 致力于提供一个高可用，高性能且具备严格的顺序访问控制能力的分布式协调服务，是由Yahoo创建，是Google的Chubby一个开源的实现，也是Hadoop和HBase的重要组件
-</code></pre><ul>
-<li>简单数据结构<br>  共享的属性结构，类似文件系统，存储于内存</li>
-<li>顺序访问<br>  对于每个读请求，zk会分配一个全局的递增编号，利用这个特性可以实现高级协调服务</li>
-<li>可构建集群<br>  避免单点故障，3～5台机器就可以组成集群，超过半数正常工作就可以对外提供服务</li>
-<li>高性能<br>  基于内存操作，服务于非事务请求，适用于读操作作为主的业务场景。3台zk集群能达到13w的QPS</li>
-</ul>
-<blockquote>
-<p>Q：为什么是奇数个节点？</p>
-</blockquote>
-<ul>
-<li>zk中节点的角色<ul>
-<li>Leader　<ul>
-<li>权限：读写</li>
-<li>事务请求的唯一调度者，保证集群事务处理的顺序性</li>
-<li>集群内部服务器的调度者（管理follower，数据同步）</li>
-</ul>
-</li>
-<li>Follower<ul>
-<li>读+选举</li>
-<li>处理非事务请求，转发事务请求</li>
-<li>参与事务请求proposal投票</li>
-<li>参与leader选举</li>
-</ul>
-</li>
-<li>Observer<ul>
-<li>读</li>
-<li>和follower功能相同但不参与任何形式投票</li>
-<li>提供集群非事务处理能力</li>
-<li>3.30以上版本提供</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="ZAB-协议"><a href="#ZAB-协议" class="headerlink" title="ZAB 协议"></a>ZAB 协议</h3><pre><code>Zookeeper Atomic Broadcast
-</code></pre><ul>
-<li>2PC &amp; 3PC（XA） </li>
-</ul>
-<blockquote>
-<p>衍生</p>
-<ul>
-<li>刚性事务 &amp; 柔性事务</li>
-<li>分布式事务</li>
-</ul>
-</blockquote>
-<h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><ul>
-<li><a href="http://lamport.azurewebsites.net/pubs/lamport-paxos.pdf" target="_blank" rel="noopener">The Part-Time Parliament</a>: <code>该算法第一次公开发表</code></li>
-<li><a href="http://lamport.azurewebsites.net/pubs/paxos-simple.pdf" target="_blank" rel="noopener">Paxos Made Simple</a>: <code>Lamport 用容易接受的方法重新表述了一遍算法</code></li>
-<li><a href="https://github.com/benjamintanweihao/distributed-systems-references" target="_blank" rel="noopener">Distributed Systerms references</a>: <code>Gitgub分布式引用</code> </li>
-<li><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/PaxosRun" target="_blank" rel="noopener">PaxosRun</a>: <code>PaxosRun 简要说明</code></li>
-</ul>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
+        <div class="article-info info-on-right">
+          
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
@@ -332,117 +195,19 @@
 		</ul>
 	</div>
 
-      
+          
 
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2019/03/27/zookeeper-paxos/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
+        </div>
+        <div class="clearfix"></div>
+    </header>
   </div>
 </article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
   
-    <article id="post-hello-world" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
+  
+    </div></section>
+  
+
     
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/03/15/hello-world/">Hello World</a>
-    </h1>
-  
-
-        
-        <a href="/2019/03/15/hello-world/" class="archive-article-date">
-  	<time datetime="2019-03-15T07:00:05.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-03-15</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><img src="/assets/blogImg/first.jpg" alt></p>
-<p>利用空闲时间尝试搭建下个人技术Blog，分享些自己在技术方面的理解、经验和一些拙见。<br>一直以来都有这个想法，怎奈自己是个懒人，又有严重拖延症，事到如今才把想法付诸实施，希望是个好的开始.</p>
-<p><strong> Keep Calm &amp; Carry On ！</strong></p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">随笔</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2019/03/15/hello-world/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-  
 
 
           </div>
@@ -464,10 +229,10 @@
     <script>
 	var yiliaConfig = {
 		mathjax: false,
-		isHome: true,
+		isHome: false,
 		isPost: false,
 		isArchive: false,
-		isTag: false,
+		isTag: true,
 		isCategory: false,
 		open_in_new: false,
 		toc_hide_index: true,
