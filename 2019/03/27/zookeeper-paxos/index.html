@@ -8,20 +8,20 @@
   <link rel="dns-prefetch" href="http://alvey.github.io">
   <title>ZAB协议的&#34;前世今生&#34; | Alvey&#39;s Notes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="引述分布式系统分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调   特点 分布式性 并发性 对等性   缺陷 故障随时发生，网络、节点故障 缺乏全局时钟   由分布式引发的问题 节点故障 硬件故障 网络故障：网络不可用（假死）、资源耗尽（僵死）   通信异常 网络分区（俗称脑裂）     网络三态  成功（Success） 失败（Failure） 超时">
+  <meta name="description" content="引述分布式系统分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调.">
 <meta name="keywords" content="zookeeper,技术,Java">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ZAB协议的&quot;前世今生&quot;">
 <meta property="og:url" content="http://alvey.github.io/2019/03/27/zookeeper-paxos/index.html">
 <meta property="og:site_name" content="Alvey&#39;s Notes">
-<meta property="og:description" content="引述分布式系统分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调   特点 分布式性 并发性 对等性   缺陷 故障随时发生，网络、节点故障 缺乏全局时钟   由分布式引发的问题 节点故障 硬件故障 网络故障：网络不可用（假死）、资源耗尽（僵死）   通信异常 网络分区（俗称脑裂）     网络三态  成功（Success） 失败（Failure） 超时">
+<meta property="og:description" content="引述分布式系统分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调.">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://alvey.github.io/assets/blogImg/2019-03-27/d-1.png">
 <meta property="og:image" content="http://alvey.github.io/assets/blogImg/2019-03-27/d-2.jpg">
-<meta property="og:updated_time" content="2019-04-11T07:03:27.219Z">
+<meta property="og:updated_time" content="2019-04-25T08:17:17.532Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ZAB协议的&quot;前世今生&quot;">
-<meta name="twitter:description" content="引述分布式系统分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调   特点 分布式性 并发性 对等性   缺陷 故障随时发生，网络、节点故障 缺乏全局时钟   由分布式引发的问题 节点故障 硬件故障 网络故障：网络不可用（假死）、资源耗尽（僵死）   通信异常 网络分区（俗称脑裂）     网络三态  成功（Success） 失败（Failure） 超时">
+<meta name="twitter:description" content="引述分布式系统分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调.">
 <meta name="twitter:image" content="http://alvey.github.io/assets/blogImg/2019-03-27/d-1.png">
   
     <link rel="alternative" href="/atom.xml" title="Alvey&#39;s Notes" type="application/atom+xml">
@@ -174,8 +174,10 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="引述"><a href="#引述" class="headerlink" title="引述"></a>引述</h3><h5 id="分布式系统"><a href="#分布式系统" class="headerlink" title="分布式系统"></a>分布式系统</h5><pre><code>分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调
+        <h3 id="引述"><a href="#引述" class="headerlink" title="引述"></a>引述</h3><h5 id="分布式系统"><a href="#分布式系统" class="headerlink" title="分布式系统"></a>分布式系统</h5><pre><code>分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调.
 </code></pre><p><img src="/assets/blogImg/2019-03-27/d-1.png" alt="分布式系统"></p>
+<a id="more"></a>
+<p>分布式系统中的节点通信存在两种模型：共享内存（Shared memory）和消息传递（Messages passing）。</p>
 <ul>
 <li>特点<ul>
 <li>分布式性</li>
