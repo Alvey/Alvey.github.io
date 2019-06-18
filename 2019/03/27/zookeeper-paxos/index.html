@@ -18,7 +18,9 @@
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://alvey.github.io/assets/blogImg/2019-03-27/d-1.png">
 <meta property="og:image" content="http://alvey.github.io/assets/blogImg/2019-03-27/d-2.jpg">
-<meta property="og:updated_time" content="2019-04-25T08:17:17.532Z">
+<meta property="og:image" content="http://alvey.github.io/assets/blogImg/2019-03-27/paxos-flow.png">
+<meta property="og:image" content="http://alvey.github.io/assets/blogImg/2019-03-27/d-3.jpg">
+<meta property="og:updated_time" content="2019-06-18T09:49:28.834Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ZAB协议的&quot;前世今生&quot;">
 <meta name="twitter:description" content="引述分布式系统分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调.">
@@ -197,7 +199,7 @@
 </ul>
 </li>
 <li>通信异常</li>
-<li>网络分区（俗称脑裂）</li>
+<li>网络分区故障（俗称脑裂）</li>
 </ul>
 </li>
 </ul>
@@ -241,7 +243,7 @@
 <p><strong>一致性协议及其重要性</strong></p>
 <p>  为保证分布式系统的的高可靠性和高可用性，数据在系统中一般存储在多个副本中。当某个副本所在的节点出现故障时，分布式系统能够自动将服务切换到其他到副本，从而实现自动容错。<br>  同一份数据的多个副本往往有一个为主的副本，其他为备选副本。从一个份数据的角度讲，主副本所在的节点为主节点，备副本所在的节点为备节点，但在整个系统范围上看，每个节点都是主节点，也是备节点。因此主从节点数据一致性就成了必须要面对的问题。</p>
 <blockquote>
-<p>  当前一致性解决方案有：</p>
+<p>  当前一致性方案有：</p>
 <ul>
 <li>[2PC/3PC] </li>
 <li><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/PaxosRun" target="_blank" rel="noopener">Paxos 协议</a></li>
@@ -254,14 +256,56 @@
 <blockquote>
 <p> 拜占庭帝国是5~15世纪的东罗马帝国，拜占庭即是现在的土耳其的伊斯坦布尔。拜占庭帝国想要进攻一个强大的敌人，为此派出了一支联合军队去包围这个敌人。这个敌人虽不比拜占庭帝国，但也足以抵御联军半数常规部队的同时袭击。基于一些原因，这支联军不能集合在一起单点突破，必须在分开的包围状态下同时攻击。他们任一支军队单独进攻都毫无胜算，除非有超过半数常规军队同时袭击才能攻下敌国。他们分散在敌国的四周，依靠通信兵相互通信来协商进攻意向及进攻时间。困扰这些将军的问题是，他们不确定他们中是否有叛徒，叛徒可能擅自变更进攻意向或者进攻时间。在这种状态下，拜占庭将军们能否找到一种分布式的协议来让他们能够远程协商，从而赢取战斗？<br>    这就是著名的拜占庭将军问题</p>
 </blockquote>
-<pre><code>拜占庭假设是对现实世界的模型化，由于硬件错误、网络阻塞或者断开以及遭受到恶意攻击，计算机和网络可能出现不可预料的行为。
-</code></pre><p>我们可以想象，拜占庭军队有许多分支，驻扎在敌人城外，每一支由各自的将军指挥，将军们只能通过通讯员进行通讯。在观察敌人以后，将军们必须制定一个统一的行动计划——进攻或者撤退。然而，这些将军中有叛徒，他们不希望忠诚的将军们达到一致，因此影响了统一行动计划的制定与传播。但问题是，将军们必须有一个协议，使所有的将军们能够达到一致，而且少数几个叛徒不能使将军们作出不一致的计划——使有些将军进攻而另外一些将军撤退。<br>于是可以假设有11位将军，其中有2个叛徒，9个忠诚将军。如果9个忠诚的将军中有6个以上判断要进攻，而剩下的将军包括2名叛徒判断要撤退，但由于超过半数的人判断要进攻，结论是进攻，结果和预想一致，最终进攻并取胜；另外一种情况是9个忠诚的将军有不超过5个人判断要进攻，由于叛徒始终主张撤退，以至于超过半数的人判断要撤退，所以结论是撤退。但是这种情况完全是允许的，因为这11位将军依然保持着状态的一致性，进而可以无恙的进入下一轮的判断！</p>
+<pre><code>拜占庭假设是对现实世界的模型化，由于硬件d错误、网络阻塞或者断开以及遭受到恶意攻击，计算机和网络可能出现不可预料的行为。
+</code></pre><p>我们可以想象，拜占庭军队有许多分支，驻扎在敌人城外，每一支由各自的将军指挥，将军们只能通过通                      讯员进行通讯。在观察敌人以后，将军们必须制定一个统一的行动计划——进攻或者撤退。然而，这些将军中有叛徒，他们不希望忠诚的将军们达到一致，因此影响了统一行动计划的制定与传播。但问题是，将军们必须有一个协议，使所有的将军们能够达到一致，而且少数几个叛徒不能使将军们作出不一致的计划——使有些将军进攻而另外一些将军撤退。<br>于是可以假设有11位将军，其中有2个叛徒，9个忠诚将军。如果9个忠诚的将军中有6个以上判断要进攻，而剩下的将军包括2名叛徒判断要撤退，但由于超过半数的人判断要进攻，结论是进攻，结果和预想一致，最终进攻并取胜；另外一种情况是9个忠诚的将军有不超过5个人判断要进攻，由于叛徒始终主张撤退，以至于超过半数的人判断要撤退，所以结论是撤退。但是这种情况完全是允许的，因为这11位将军依然保持着状态的一致性，进而可以无恙的进入下一轮的判断！</p>
 <p>于是乎，Lamport在此条件的基础上，提出了一种解决分布式一致性问题的解法，<strong>Paxos协议</strong>！</p>
 <blockquote>
 <p>和拜占庭将军问题类似还有个 <strong>“两军问题”</strong>，它们俩实质是不一样的，有兴趣可以深入研究下</p>
 </blockquote>
 <h3 id="Paxos-协议"><a href="#Paxos-协议" class="headerlink" title="Paxos 协议"></a>Paxos 协议</h3><pre><code>Google Chubby的作者Mike Burrows说过世界上只有一种一致性算法，那就是Paxos，其他的算法都是残次品。
-</code></pre><h5 id="Zookeeper"><a href="#Zookeeper" class="headerlink" title="Zookeeper"></a><a href="http://zookeeper.apache.org/" target="_blank" rel="noopener">Zookeeper</a></h5><pre><code>Zookeeper 致力于提供一个高可用，高性能且具备严格的顺序访问控制能力的分布式协调服务，是由Yahoo创建，是Google的Chubby一个开源的实现，也是Hadoop和HBase的重要组件
+</code></pre><ul>
+<li><p>角色</p>
+<ul>
+<li>Proposer：提交者，提交议案并参与判断</li>
+<li>Acceptor：接受者，接受或驳回议案，给proposer反馈</li>
+<li>Learner：学习者，议案产生进行学习</li>
+</ul>
+</li>
+<li><p>条件</p>
+<ul>
+<li>每个议案都必须有个编号，并且编号递增且唯一，</li>
+<li>议案有两种：提交的议案和批准的议案</li>
+<li>如果acceptor没有接受任何议案，必须接受第一次接收到的议案</li>
+<li>Acceptor始终接受编号较大的议案</li>
+</ul>
+</li>
+<li><p>选举流程<br>  <img src="/assets/blogImg/2019-03-27/paxos-flow.png" alt="流程图"></p>
+</li>
+</ul>
+<blockquote>
+<p><strong>准备阶段（提交阶段）</strong></p>
+<ul>
+<li>Proposer 发出 Prepare(K) 请求至 Acceptor</li>
+<li>Acceptor 收到请求并检查自己手里是否有处理过 Prepare 请求。<ul>
+<li>如果 Acceptor 没有接受过任何 Prepare 请求，则直接返回 OK 给 Proposer，表示Acceptor接受议案；</li>
+<li>如果 Acceptor 之前接受过任何 Prepare 请求，则比较议案编号，假如接受的议案编号为 MaxN<ol>
+<li>K &lt; MaxN, 则拒绝(reject)或者回复 error</li>
+<li>K &gt;= MaxN, 则检查之前的是否有批准的议案。没有的话返回 OK，并记录 K；有的话，回复之前批准的议案编号和内容<br><strong>批准阶段</strong></li>
+</ol>
+</li>
+</ul>
+</li>
+<li>Proposer 收到过半的 OK 回复，且没有附带任何批准过的议案编号和议案内容，那么 Proposer 继续提交批准请求，不过此时的提交会带上议案编号 K 和议案内容 V</li>
+<li>Proposer 收到过半的 OK 回复，其中回复中有附带议案编号和议案内容（&lt;pok，议案编号，议案内容&gt;），那么 Proposer 会找出所有回复中最大的议案编号的议案内容作为批准请求发送给 Acceptor</li>
+<li>Proposer 没有收到过半的 Acceptor 回复，则修改议案编号，K 变为 Kx，并将编号重新发送给 Acceptors（重复Prepare阶段的过程）</li>
+<li>Acceptor 收到 Proposer 发来的 Accept 请求，如果编号 K &lt; MaxN 则不回应或者reject</li>
+<li>Aceeptor 收到 Proposer 发来的 Accept 请求，如果编号 K &gt;= MaxN 则批准改议案，并设置手里的批准的议案为 &lt;K, 接受的议案编号，接受议案的内容&gt;，回复 Proposer</li>
+<li>经过一段时间 Proposer 对比收到 Accept 回复，如果超过半数，则结束流程（议案被批准），同时通知 Learner 学习议案。</li>
+<li>经过一段时间 Proposer 对比收到 Accept 回复，如果没有超过半数，则修改议案编号重新进入 Prepare 阶段。</li>
+</ul>
+</blockquote>
+<p><img src="/assets/blogImg/2019-03-27/d-3.jpg" alt="流程图"></p>
+<h5 id="Zookeeper"><a href="#Zookeeper" class="headerlink" title="Zookeeper"></a><a href="http://zookeeper.apache.org/" target="_blank" rel="noopener">Zookeeper</a></h5><pre><code>Zookeeper 致力于提供一个高可用，高性能且具备严格的顺序访问控制能力的分布式协调服务，是由Yahoo创建，是Google的Chubby一个开源的实现，也是Hadoop和HBase的重要组件
 </code></pre><ul>
 <li>简单数据结构<br>  共享的属性结构，类似文件系统，存储于内存</li>
 <li>顺序访问<br>  对于每个读请求，zk会分配一个全局的递增编号，利用这个特性可以实现高级协调服务</li>
