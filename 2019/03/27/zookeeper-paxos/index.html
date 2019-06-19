@@ -20,7 +20,7 @@
 <meta property="og:image" content="http://alvey.github.io/assets/blogImg/2019-03-27/d-2.jpg">
 <meta property="og:image" content="http://alvey.github.io/assets/blogImg/2019-03-27/paxos-flow.png">
 <meta property="og:image" content="http://alvey.github.io/assets/blogImg/2019-03-27/d-3.jpg">
-<meta property="og:updated_time" content="2019-06-18T09:49:28.834Z">
+<meta property="og:updated_time" content="2019-06-19T08:32:32.778Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ZAB协议的&quot;前世今生&quot;">
 <meta name="twitter:description" content="引述分布式系统分布式系统：一个硬件或软件组件分布在不同的网络计算机上，彼此之间仅仅通过消息传递进行通信和协调.">
@@ -241,11 +241,11 @@
 <li>Eventually consistent<br>  所有数据在经过一段时间的数据同步后，最终能够达到一致的状态</li>
 </ul>
 <p><strong>一致性协议及其重要性</strong></p>
-<p>  为保证分布式系统的的高可靠性和高可用性，数据在系统中一般存储在多个副本中。当某个副本所在的节点出现故障时，分布式系统能够自动将服务切换到其他到副本，从而实现自动容错。<br>  同一份数据的多个副本往往有一个为主的副本，其他为备选副本。从一个份数据的角度讲，主副本所在的节点为主节点，备副本所在的节点为备节点，但在整个系统范围上看，每个节点都是主节点，也是备节点。因此主从节点数据一致性就成了必须要面对的问题。</p>
-<blockquote>
+<pre><code>为保证分布式系统的的高可靠性和高可用性，数据在系统中一般存储在多个副本中。当某个副本所在的节点出现故障时，分布式系统能够自动将服务切换到其他到副本，从而实现自动容错。同一份数据的多个副本往往有一个为主的副本，其他为备选副本。从一个份数据的角度讲，主副本所在的节点为主节点，备副本所在的节点为备节点，但在整个系统范围上看，每个节点都是主节点，也是备节点。因此主从节点数据一致性就成了必须要面对的问题。
+</code></pre><blockquote>
 <p>  当前一致性方案有：</p>
 <ul>
-<li>[2PC/3PC] </li>
+<li><a href="https://www.hollischuang.com/archives/1580" target="_blank" rel="noopener">2PC/3PC(XA规范)</a> ：强一致性，RMDBS分布式事务，事务管理器，单点故障，脑裂</li>
 <li><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/PaxosRun" target="_blank" rel="noopener">Paxos 协议</a></li>
 <li><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/Zab" target="_blank" rel="noopener">ZAB协议</a></li>
 <li><a href="http://raft.taillog.cn/" target="_blank" rel="noopener">Raft 协议</a></li>
@@ -290,16 +290,21 @@
 <li>如果 Acceptor 没有接受过任何 Prepare 请求，则直接返回 OK 给 Proposer，表示Acceptor接受议案；</li>
 <li>如果 Acceptor 之前接受过任何 Prepare 请求，则比较议案编号，假如接受的议案编号为 MaxN<ol>
 <li>K &lt; MaxN, 则拒绝(reject)或者回复 error</li>
-<li>K &gt;= MaxN, 则检查之前的是否有批准的议案。没有的话返回 OK，并记录 K；有的话，回复之前批准的议案编号和内容<br><strong>批准阶段</strong></li>
+<li>K &gt;= MaxN, 则检查之前的是否有批准的议案。没有的话返回 OK，并记录 K；有的话，回复之前批准的议案编号和内容</li>
 </ol>
 </li>
 </ul>
 </li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>批准阶段</strong></p>
+<ul>
 <li>Proposer 收到过半的 OK 回复，且没有附带任何批准过的议案编号和议案内容，那么 Proposer 继续提交批准请求，不过此时的提交会带上议案编号 K 和议案内容 V</li>
 <li>Proposer 收到过半的 OK 回复，其中回复中有附带议案编号和议案内容（&lt;pok，议案编号，议案内容&gt;），那么 Proposer 会找出所有回复中最大的议案编号的议案内容作为批准请求发送给 Acceptor</li>
 <li>Proposer 没有收到过半的 Acceptor 回复，则修改议案编号，K 变为 Kx，并将编号重新发送给 Acceptors（重复Prepare阶段的过程）</li>
 <li>Acceptor 收到 Proposer 发来的 Accept 请求，如果编号 K &lt; MaxN 则不回应或者reject</li>
-<li>Aceeptor 收到 Proposer 发来的 Accept 请求，如果编号 K &gt;= MaxN 则批准改议案，并设置手里的批准的议案为 &lt;K, 接受的议案编号，接受议案的内容&gt;，回复 Proposer</li>
+<li>Acceptor 收到 Proposer 发来的 Accept 请求，如果编号 K &gt;= MaxN 则批准改议案，并设置手里的批准的议案为 &lt;K, 接受的议案编号，接受议案的内容&gt;，回复 Proposer</li>
 <li>经过一段时间 Proposer 对比收到 Accept 回复，如果超过半数，则结束流程（议案被批准），同时通知 Learner 学习议案。</li>
 <li>经过一段时间 Proposer 对比收到 Accept 回复，如果没有超过半数，则修改议案编号重新进入 Prepare 阶段。</li>
 </ul>
@@ -340,15 +345,21 @@
 </ul>
 </li>
 </ul>
-<h3 id="ZAB-协议"><a href="#ZAB-协议" class="headerlink" title="ZAB 协议"></a>ZAB 协议</h3><pre><code>Zookeeper Atomic Broadcast
+<h3 id="ZAB-协议"><a href="#ZAB-协议" class="headerlink" title="ZAB 协议"></a>ZAB 协议</h3><pre><code>Zookeeper Atomic Broadcast, zk原子广播协议
 </code></pre><ul>
-<li>2PC &amp; 3PC（XA） </li>
+<li>2PC &amp; 3PC（XA） <ul>
+<li>2PC（两段提交）</li>
+<li>3PC（三段提交）</li>
+</ul>
+</li>
 </ul>
 <blockquote>
-<p>衍生</p>
+<p><strong>延伸</strong></p>
 <ul>
 <li>刚性事务 &amp; 柔性事务</li>
 <li>分布式事务</li>
+<li>TCC</li>
+<li>Saga</li>
 </ul>
 </blockquote>
 <h3 id="References"><a href="#References" class="headerlink" title="References"></a>References</h3><ul>
@@ -356,6 +367,7 @@
 <li><a href="http://lamport.azurewebsites.net/pubs/paxos-simple.pdf" target="_blank" rel="noopener">Paxos Made Simple</a>: <code>Lamport 用容易接受的方法重新表述了一遍算法</code></li>
 <li><a href="https://github.com/benjamintanweihao/distributed-systems-references" target="_blank" rel="noopener">Distributed Systerms references</a>: <code>Gitgub分布式引用</code> </li>
 <li><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/PaxosRun" target="_blank" rel="noopener">PaxosRun</a>: <code>PaxosRun 简要说明</code></li>
+<li><a href="https://docs.oracle.com/cd/E19509-01/820-5892/ref_xatrans/index.html" target="_blank" rel="noopener">XA Transactions</a>：<code>XA 协议</code></li>
 </ul>
 
       
